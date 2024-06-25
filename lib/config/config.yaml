@@ -1,0 +1,39 @@
+data:
+  reanalysis_folder: "/home/glorys_re/"
+  operative_folder: "/home/glorys_op/"
+  start_date: '2020-11-01'
+  end_date: '2024-02-27'
+  glorys_mean_path: "/home/logs/glorys_mean"
+  glorys_std_path: "/home/logs/glorys_std"
+  logs_path: "/home/logs/"
+
+s2s:
+  sequence_len: 1
+  use_spatiotemporal_encoding: 0
+
+train:
+  max_epochs: 10
+  batch_size: 8
+  scheduler_type: MultiStepLR
+  lr: 0.0001
+  use_spatiotemporal_encoding: 1
+
+model_type: UNet3DLight
+model_args:
+  unet2d:
+    n_channels: 34
+    n_classes: 34
+    bilinear: False
+  unet3d:
+    n_channels: 1
+    n_classes: 1
+    bilinear: False
+    factor: 8
+
+run_config:
+  run_mode: 'test'
+
+test_config:
+  best_epoch: 0
+  run_id: 5
+  draw_plots: 1
