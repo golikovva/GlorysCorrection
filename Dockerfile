@@ -23,6 +23,7 @@ RUN pip install pyproj
 RUN pip install global-land-mask
 RUN pip install cartopy
 RUN pip install addict
+RUN pip install numba
 COPY . /home
 WORKDIR /home/
 
