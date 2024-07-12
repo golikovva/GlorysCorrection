@@ -37,8 +37,9 @@ def train_epoch(dataloader, model, criterion, scaler, optimizer, cfg):
     for train_data, train_label, i in (pbar := tqdm(dataloader)):
         train_data = train_data.type(torch.float).to(cfg.device)
         train_label = train_label.type(torch.float).to(cfg.device)
-        train_data = scaler.transform(train_data)
-        train_label = scaler.transform(train_label)
+
+        train_data = scaler.transform(train_data, dims=1)
+        train_label = scaler.transform(train_label, means=scaler.means[0], stds=scaler.stddevs[0], dims=1)
 
         optimizer.zero_grad()
         output = model(train_data)
@@ -64,8 +65,8 @@ def eval_epoch(dataloader, model, criterion, scaler, cfg, logger=None):
         for valid_data, valid_label, i in tqdm(dataloader):
             valid_data = valid_data.type(torch.float).to(cfg.device)
             valid_label = valid_label.type(torch.float).to(cfg.device)
-            valid_label = scaler.transform(valid_label, 2)
-            valid_data = scaler.transform(valid_data, 2)
+            valid_data = scaler.transform(valid_data, dims=1)
+            valid_label = scaler.transform(valid_label, means=scaler.means[0], stds=scaler.stddevs[0], dims=1)
 
             output = model(valid_data)
 

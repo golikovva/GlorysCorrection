@@ -18,7 +18,7 @@ RUN pip install transformers
 RUN pip install SciPy
 RUN pip install optuna
 
-RUN conda install -c conda-forge esmpy
+RUN CONDA_RESTORE_FREE_CHANNEL=1 conda install -c conda-forge esmpy
 RUN pip install pyproj
 RUN pip install global-land-mask
 RUN pip install cartopy

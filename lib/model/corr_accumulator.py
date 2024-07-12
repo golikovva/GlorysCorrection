@@ -1,5 +1,14 @@
-import torch
 import numpy as np
+import torch.nn as nn
+
+
+class AccumCorrector(nn.Module):
+    def __init__(self, corr_fields_path):
+        super().__init__()
+        self.corr_fields = np.load(corr_fields_path).reshape((366, 34, 181, 577))  # day, z, h, w
+
+    def __call__(self, operative, day_of_year):
+        return operative + self.corr_fields[day_of_year]
 
 
 class CorrAccumulator:
@@ -53,12 +62,3 @@ class CorrAccumulator:
         periods = self._get_time_period_from_i(days_from_start_date)
         print(self.period_means[periods].shape)
         return data + self.period_means[periods]
-
-
-class AccumCorrector:
-    def __init__(self, corr_fields_path):
-        self.corr_fields = np.load(corr_fields_path).reshape(366, 34, 181, 577)  # day, z, h, w
-
-    def __call__(self, operative, day_of_year):
-        return operative + self.corr_fields[day_of_year]
-

@@ -4,6 +4,7 @@ import sys
 import os
 from time import time
 from tqdm import tqdm
+
 sys.path.insert(0, '../..')
 from lib.data.borey.datasets import glorys
 from lib.data.dataset_utils import ConcatI2IDataset
@@ -11,11 +12,11 @@ from lib.utils.interpolation import InvDistTree
 from lib.config.cfg import cfg
 
 start = time()
-correction_field_file = 'day_correction_fields_1.npy'
+correction_field_file = 'day_correction_fields.npy'
 hyperparameters = {'num_spatial_neighbours': 20,
                    'num_temporal_neighbours': 7,
-                   'spatial_variance': 0.5,
-                   'time_variance': 7}
+                   'spatial_variance': 0.1,
+                   'time_variance': 25}
 print(hyperparameters)
 
 ds_op = glorys.GlorysOperativeSalinityDataset(cfg.data.operative_folder)
@@ -29,7 +30,7 @@ print('Start calculating spatiotemporal weights')
 interp = InvDistTree(x=coords, q=coords, n_near=hyperparameters['num_spatial_neighbours'],
                      sigma_squared=hyperparameters['spatial_variance'])
 time_dist = np.abs(np.arange(-hyperparameters['num_temporal_neighbours'],
-                             hyperparameters['num_temporal_neighbours'] + 0.1))+1
+                             hyperparameters['num_temporal_neighbours'] + 0.1)) + 1
 time_coefs = interp.calc_dist_coefs(time_dist, sigma_squared=hyperparameters['time_variance'])
 spatial_coefs = interp.weights
 raw_weights = torch.einsum('ab,c->abc', spatial_coefs, time_coefs)
@@ -54,7 +55,7 @@ for t in tqdm(range(366)):
 
 print(res.shape)
 print(f'Time spent in total: {time() - start} sec.')
-save_result = False
+save_result = True
 if save_result:
-    np.save(res.numpy(), os.path.join(cfg.data.logs_path, 'spatiotemporal_baseline',
-                                      correction_field_file[:-4]+'nearn_meaned.npy'))
+    np.save(os.path.join(cfg.data.logs_path, 'spatiotemporal_baseline',
+                         correction_field_file[:-4] + '_nearestn_meaned.npy'), res.numpy())

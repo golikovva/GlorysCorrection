@@ -9,7 +9,7 @@ from lib.model.conv_4d import conv4d_numba
 from lib.config.cfg import cfg
 
 start = time()
-correction_field_file = 'day_correction_fields_1.npy'
+correction_field_file = 'day_correction_fields.npy'
 hyperparameters = {'k_size': (15, 3, 7, 7),
                    'sigmas': (9, 0.5, 2, 2)}
 
@@ -28,7 +28,7 @@ field = np.load(os.path.join(cfg.data.logs_path, 'spatiotemporal_baseline', corr
 result = conv4d_numba(field, kernel)
 
 print(f'Time spent in total: {time() - start} sec.')
-save_result = False
+save_result = True
 if save_result:
     np.save(os.path.join(cfg.data.logs_path, 'spatiotemporal_baseline',
-                         correction_field_file[:-4] + 'conv_meaned.npy'), result)
+                         correction_field_file[:-4] + '_conv_meaned.npy'), result)

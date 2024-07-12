@@ -133,3 +133,9 @@ class Config(object):
 
 print(osp.dirname(__file__))
 cfg = Config.fromfile(osp.join(osp.dirname(__file__), 'config.yaml'))
+
+if cfg.s2s.use_temporal_encoding == 1:
+    cfg.model_args.unet3d.n_channels += 1
+if cfg.s2s.use_spatial_encoding == 1:
+    cfg.model_args.unet3d.n_channels += 2
+

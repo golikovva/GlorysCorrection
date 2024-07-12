@@ -36,11 +36,9 @@ def test(model, scaler, dataloader, logger, cfg, save_losses=False):
             label = label.type(torch.float).to(cfg.device)
             i = i.item()
 
-            data = scaler.transform(data)
-            output = model(data)
-
-            output = scaler.inverse_transform(output)
-            data = scaler.inverse_transform(data)
+            output = model(scaler.transform(data, dims=1))
+            output = scaler.inverse_transform(output, means=scaler.means[0], stds=scaler.stddevs[0], dims=1)
+            data = data[:, 0]
 
             for name in losses:
                 # level_orig_loss = losses[name](data, label).mean([0, 2, 3])
@@ -78,6 +76,7 @@ def test(model, scaler, dataloader, logger, cfg, save_losses=False):
         plot_utils.draw_so_means([orig, corr, target], ['orig', 'corr', 'target'], times)
         plt.savefig(os.path.join(logger.save_dir, 'plots', 'stats', f'so_means'))
         loss = acc.data['mean_corr_mae'].mean()
+        acc.save_data(os.path.join(logger.save_dir))
     return loss
 
 
