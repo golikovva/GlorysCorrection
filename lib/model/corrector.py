@@ -9,8 +9,8 @@ class Corrector(nn.Module):
         self.unet = model
         self.classes_dim = classes_dim
 
-    def forward(self, x_orig):
+    def forward(self, x_orig, *args):
         x = x_orig
-        unet_out = self.unet(x)
+        unet_out = self.unet(x, *args)
         o_input = torch.split(x_orig, self.n_classes, dim=self.classes_dim)
         return o_input[0] + unet_out.view(*o_input[0].shape)

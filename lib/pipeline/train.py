@@ -35,14 +35,16 @@ def train_epoch(dataloader, model, criterion, scaler, optimizer, cfg):
     model.train()
     t = 0
     for train_data, train_label, i in (pbar := tqdm(dataloader)):
-        train_data = train_data.type(torch.float).to(cfg.device)
+        for idx in range(len(train_data)):
+            train_data[idx] = train_data[idx].type(torch.float).to(cfg.device)
         train_label = train_label.type(torch.float).to(cfg.device)
 
-        train_data = scaler.transform(train_data, dims=1)
+        train_data[0] = scaler.transform(train_data[0], dims=1)
         train_label = scaler.transform(train_label, means=scaler.means[0], stds=scaler.stddevs[0], dims=1)
 
         optimizer.zero_grad()
-        output = model(train_data)
+
+        output = model(*train_data)
 
         loss = criterion(output, train_label)
 
@@ -63,12 +65,13 @@ def eval_epoch(dataloader, model, criterion, scaler, cfg, logger=None):
         model.eval()
         valid_loss = 0.0
         for valid_data, valid_label, i in tqdm(dataloader):
-            valid_data = valid_data.type(torch.float).to(cfg.device)
+            for idx in range(len(valid_data)):
+                valid_data[idx] = valid_data[idx].type(torch.float).to(cfg.device)
             valid_label = valid_label.type(torch.float).to(cfg.device)
-            valid_data = scaler.transform(valid_data, dims=1)
+            valid_data[0] = scaler.transform(valid_data[0], dims=1)
             valid_label = scaler.transform(valid_label, means=scaler.means[0], stds=scaler.stddevs[0], dims=1)
 
-            output = model(valid_data)
+            output = model(*valid_data)
 
             loss = criterion(output, valid_label)
             valid_loss += loss.item()

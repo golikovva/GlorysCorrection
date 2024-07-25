@@ -43,20 +43,24 @@ class ConcatI2IDataset(ConcatDataset):
 
 class ConcatS2SDataset(ConcatDataset):
     def __init__(self, *datasets, start_date=None, sequence_len=1, use_spatial_encoding=False,
-                 use_temporal_encoding=False):
+                 use_temporal_encoding=False, return_mask=False):
         super().__init__(*datasets, start_date=start_date)
         self.seq_len = sequence_len
         self.use_spatial_encoding = use_spatial_encoding
         self.use_temporal_encoding = use_temporal_encoding
+        self.return_mask = return_mask
 
     def __getitem__(self, i):
         dates = np.arange(i, i + np.timedelta64(self.seq_len, 'D')).astype(datetime)
-        ops, res = [], []
+        ops, res, masks = [], [], []
         for date in dates:
             op, re = tuple(d[date] for d in self.datasets)
+            if self.return_mask:
+                masks.append(~np.isnan(op[0]) * 1.)
             op = np.nan_to_num(op[0])
             re = np.nan_to_num(re[:34])
             re[self.imp_mask] = op[self.imp_mask]  # чтобы не учиться на нулях
+            re[self.op_mask] = 0
             ops.append(op)
             res.append(re)
 
@@ -64,11 +68,25 @@ class ConcatS2SDataset(ConcatDataset):
         if self.use_temporal_encoding:
             encoding = get_time_encoding(i, self.datasets[0].src_grid.lon, self.datasets[0].src_grid.lat)  # todo
             ops.append(np.broadcast_to(encoding, ops[0].shape).copy())
+            masks.append(masks[0])
         if self.use_spatial_encoding:
             ops.append(np.broadcast_to(self.datasets[0].src_grid.lat, ops[0].shape).copy())
             ops.append(np.broadcast_to(self.datasets[0].src_grid.lon, ops[0].shape).copy())
+            masks.extend([masks[0]] * 2)
         ops = np.stack(ops)
-        return ops, res, np.where(self.days == i)[0]
+
+        if self.return_mask:
+            masks = np.stack(masks)
+            return (ops, masks), res, np.where(self.days == i)[0]
+        return (ops,), res, np.where(self.days == i)[0]
+
+
+def _unpack_tuple(x):
+    """ Unpacks one-element tuples for use as return values """
+    if len(x) == 1:
+        return x[0]
+    else:
+        return x
 
 
 def get_time_encoding(date, lon, lat, frequency=4):

@@ -1,16 +1,15 @@
-import sys
-from random import randint
-
-sys.path.insert(0, '../')
-import torch
 import os
-from lib.utils import plot_utils
-from lib.model.losses import RMSELoss, MaskedLoss
-from tqdm import tqdm
-import numpy as np
+import sys
+import torch
 import matplotlib.pyplot as plt
 
-import pandas as pd
+from tqdm import tqdm
+sys.path.insert(0, '../')
+
+from lib.model.losses import RMSELoss, MaskedLoss
+from lib.utils import plot_utils
+
+
 
 
 
@@ -32,12 +31,15 @@ def test(model, scaler, dataloader, logger, cfg, save_losses=False):
         rmse = MaskedLoss(RMSELoss, mask=loss_mask).to(cfg.device)
         losses = {'mae': mae, 'rmse': rmse}
         for j, (data, label, i) in (pbar := tqdm(enumerate(dataloader), total=len(days))):
-            data = data.type(torch.float).to(cfg.device)
+            for idx in range(len(data)):
+                data[idx] = data[idx].type(torch.float).to(cfg.device)
+
             label = label.type(torch.float).to(cfg.device)
             i = i.item()
-
-            output = model(scaler.transform(data, dims=1))
+            data[0] = scaler.transform(data[0], dims=1)
+            output = model(*data)
             output = scaler.inverse_transform(output, means=scaler.means[0], stds=scaler.stddevs[0], dims=1)
+            data = scaler.inverse_transform(data[0], dims=1)
             data = data[:, 0]
 
             for name in losses:
@@ -46,9 +48,7 @@ def test(model, scaler, dataloader, logger, cfg, save_losses=False):
                 mean_orig_loss = losses[name](data, label).mean().item()
                 mean_corr_loss = losses[name](output, label).mean().item()
                 acc.cat_accumulate_losses(names=[f'mean_orig_{name}', f'mean_corr_{name}',],
-                                                 # f'level_orig_{name}', f'level_corr_{name}'],
                                           losses=[mean_orig_loss, mean_corr_loss,])
-                                                  # level_orig_loss, level_corr_loss])
 
             mask_sum = loss_mask.sum()
             mean_orig_so = ((data*loss_mask).sum()/mask_sum).item()

@@ -1,9 +1,10 @@
 from lib.model.unet_2d import UNet2D
 from lib.model.unet_3d import UNet3D, UNet3DLight
+from lib.model.partial_unet_3d import PartUNet3DLight
 from lib.model.corrector import Corrector
 from lib.model.corr_accumulator import AccumCorrector
 from lib.data.dataset_utils import ConcatI2IDataset, ConcatS2SDataset
-# from lib.config.cfg import cfg
+
 import torch
 
 
@@ -18,6 +19,10 @@ def build_correction_model(cfg):
         print(cfg.model_args.unet3d.n_channels)
         unet = UNet3DLight(*cfg.model_args.unet3d.values())
         model = Corrector(unet, n_classes=cfg.model_args.unet3d.n_classes, classes_dim=-4).to(cfg.device)
+    elif cfg.model_type == "partunet3d":
+        print(cfg.model_args.unet3d.n_channels)
+        unet = PartUNet3DLight(*cfg.model_args.partunet3d.values())
+        model = Corrector(unet, n_classes=cfg.model_args.partunet3d.n_classes, classes_dim=-4).to(cfg.device)
     else:
         raise NotImplementedError
     return model
@@ -30,6 +35,8 @@ def build_dataset(*datasets, cfg):
         dataset = ConcatS2SDataset(*datasets, **cfg.s2s)
     elif cfg.model_type == "UNet3DLight":
         dataset = ConcatS2SDataset(*datasets, **cfg.s2s)
+    elif cfg.model_type == "partunet3d":
+        dataset = ConcatS2SDataset(*datasets, **cfg.s2s, return_mask=True)
     else:
         raise NotImplementedError
     return dataset

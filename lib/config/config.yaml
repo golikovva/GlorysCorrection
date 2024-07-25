@@ -1,3 +1,4 @@
+id: Unet3dl_uncertainty_1
 data:
   reanalysis_folder: "/home/glorys_re/"
   operative_folder: "/home/glorys_op/"
@@ -10,16 +11,16 @@ data:
 
 s2s:
   sequence_len: 1
-  use_temporal_encoding: 0
-  use_spatial_encoding: 0
+  use_temporal_encoding: 1
+  use_spatial_encoding: 1
 
 train:
-  max_epochs: 10
+  max_epochs: 15
   batch_size: 2
   scheduler_type: MultiStepLR
   lr: 0.0001
 
-model_type: UNet3DLight
+model_type: partunet3d
 model_args:
   unet2d:
     n_channels: 34
@@ -31,12 +32,18 @@ model_args:
     n_classes: 1
     bilinear: False
     factor: 8
+  partunet3d:
+    n_channels: 4
+    n_classes: 1
+    bilinear: False
+    return_mask: False
+    factor: 8
 
 run_config:
   run_mode: 'train'
 
 test_config:
   best_epoch: 9
-  run_id: 21
+  run_id: 6
   draw_plots: 1
   save_losses: 1

@@ -1,7 +1,4 @@
-#FROM huecker.io/library/alpine:latest
 FROM pytorch/pytorch
-#RUN pip install opencv-python
-#RUN apt-get update && apt-get install libgl1
 RUN pip install jupyter
 RUN pip install jupyterlab
 RUN pip install notebook
@@ -18,7 +15,10 @@ RUN pip install transformers
 RUN pip install SciPy
 RUN pip install optuna
 
-RUN CONDA_RESTORE_FREE_CHANNEL=1 conda install -c conda-forge esmpy
+# Обновим conda перед установкой esmpy
+RUN conda update -n base -c defaults conda
+RUN conda install -c conda-forge esmpy
+
 RUN pip install pyproj
 RUN pip install global-land-mask
 RUN pip install cartopy
@@ -26,5 +26,3 @@ RUN pip install addict
 RUN pip install numba
 COPY . /home
 WORKDIR /home/
-
-#CMD ["python", "experiments/conv2d/main.py"]

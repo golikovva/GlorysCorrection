@@ -80,10 +80,10 @@ class DoubleConv3D(nn.Module):
         self.double_conv = nn.Sequential(
             nn.Conv3d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm3d(mid_channels),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             nn.Conv3d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm3d(out_channels),
-            nn.ReLU(inplace=True)
+            nn.SiLU(inplace=True)
         )
 
     def forward(self, x):
@@ -130,6 +130,7 @@ class Up3D(nn.Module):
         # if you have padding issues, see
         # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
         # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
+
         x = torch.cat([x2, x1], dim=1)
         return self.conv(x)
 
